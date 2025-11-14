@@ -67,6 +67,6 @@ class CreateTransaction
             );
 
             return $transaction;
-        }, 3);
+        }, 5);
     }
 }

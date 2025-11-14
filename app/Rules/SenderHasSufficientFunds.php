@@ -7,7 +7,7 @@ use App\Models\Transaction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\Validation\ValidationRule;
 
-class HasSufficientFunds implements ValidationRule
+class SenderHasSufficientFunds implements ValidationRule
 {
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {

@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Transaction;
-use App\Rules\HasSufficientFunds;
+use App\Rules\SenderHasSufficientFunds;
 use Illuminate\Foundation\Http\FormRequest;
 use App\Actions\Transactions\CreateTransaction;
 
@@ -14,7 +14,7 @@ class TransactionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -26,12 +26,12 @@ class TransactionRequest extends FormRequest
     {
         return [
             'receiver' => ['required', 'exists:users,id'],
-            'amount' => ['required', 'numeric', 'min:1', new HasSufficientFunds],
+            'amount' => ['required', 'numeric', 'min:1', new SenderHasSufficientFunds],
         ];
     }
 
     public function persist(): Transaction
     {
-        return (new CreateTransaction($this))->handle($this);
+        return (new CreateTransaction($this))->handle();
     }
 }

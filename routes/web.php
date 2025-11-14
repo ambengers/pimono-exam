@@ -1,9 +1,10 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SpaController;
+use App\Http\Controllers\AccountsController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\TransactionsController;
 
 // Authentication routes
 Route::middleware('guest')->group(function () {
@@ -12,6 +13,14 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware(['auth', 'json'])->group(function () {
+    Route::group(['prefix' => 'api', 'as' => 'api.'],  function () {
+        Route::get('/accounts', [AccountsController::class, 'index'])->name('accounts.index');
+
+        Route::get('transactions', [TransactionsController::class, 'index'])->name('transactions.index');
+        Route::post('transactions', [TransactionsController::class, 'store'])->name('transactions.store');
+    });
+
+
     Route::post('/logout', [AuthController::class, 'logout']);
 });
 

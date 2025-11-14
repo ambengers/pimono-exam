@@ -120,8 +120,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useAuth } from '../composables/useAuth';
-import FormInput from '../components/forms/FormInput.vue';
+import { useAuth } from '@composables/useAuth';
+import FormInput from '@components/forms/FormInput.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -141,18 +141,25 @@ onMounted(() => {
 });
 
 const handleLogin = async () => {
+    // Prevent double submission
+    if (isSubmitting.value) {
+        return;
+    }
+    
     formError.value = null;
     isSubmitting.value = true;
     
-    const result = await auth.login(form.value.email, form.value.password);
-    
-    isSubmitting.value = false;
-    
-    if (result.success) {
-        const redirect = route.query.redirect as string;
-        router.push(redirect || '/dashboard');
-    } else {
-        formError.value = result.error || 'Login failed';
+    try {
+        const result = await auth.login(form.value.email, form.value.password);
+        
+        if (result.success) {
+            const redirect = route.query.redirect as string;
+            router.push(redirect || '/dashboard');
+        } else {
+            formError.value = result.error || 'Login failed';
+        }
+    } finally {
+        isSubmitting.value = false;
     }
 };
 </script>

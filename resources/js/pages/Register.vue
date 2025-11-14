@@ -122,8 +122,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAuth } from '../composables/useAuth';
-import FormInput from '../components/forms/FormInput.vue';
+import { useAuth } from '@composables/useAuth';
+import FormInput from '@components/forms/FormInput.vue';
 
 const router = useRouter();
 const auth = useAuth();
@@ -144,22 +144,29 @@ onMounted(() => {
 });
 
 const handleRegister = async () => {
+    // Prevent double submission
+    if (isSubmitting.value) {
+        return;
+    }
+    
     formError.value = null;
     isSubmitting.value = true;
     
-    const result = await auth.register(
-        form.value.name,
-        form.value.email,
-        form.value.password,
-        form.value.password_confirmation
-    );
-    
-    isSubmitting.value = false;
-    
-    if (result.success) {
-        router.push('/dashboard');
-    } else {
-        formError.value = result.error || 'Registration failed';
+    try {
+        const result = await auth.register(
+            form.value.name,
+            form.value.email,
+            form.value.password,
+            form.value.password_confirmation
+        );
+        
+        if (result.success) {
+            router.push('/dashboard');
+        } else {
+            formError.value = result.error || 'Registration failed';
+        }
+    } finally {
+        isSubmitting.value = false;
     }
 };
 </script>

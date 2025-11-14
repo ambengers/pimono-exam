@@ -17,7 +17,10 @@
         "tailwindcss": "^4.0.0",
         "typescript": "^5.9.3",
         "vite": "^7.0.7",
-        "vue": "^3.5.24",
+        "vue": "^3.5.24"
+    },
+    "dependencies": {
+        "nprogress": "^0.2.0",
         "vue-router": "^4.6.3"
     }
 }

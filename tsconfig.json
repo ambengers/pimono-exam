@@ -14,6 +14,16 @@
     "noEmit": true,
     "jsx": "preserve",
 
+    /* Path Aliases */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["resources/js/*"],
+      "@components/*": ["resources/js/components/*"],
+      "@composables/*": ["resources/js/composables/*"],
+      "@pages/*": ["resources/js/pages/*"],
+      "@stores/*": ["resources/js/stores/*"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

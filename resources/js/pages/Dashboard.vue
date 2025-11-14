@@ -52,7 +52,7 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { useAuth } from '../composables/useAuth';
+import { useAuth } from '@composables/useAuth';
 
 const router = useRouter();
 const auth = useAuth();

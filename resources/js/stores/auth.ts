@@ -11,13 +11,11 @@ export const useAuthStore = defineStore('auth', {
     },
 
     actions: {
-        actions: {
-            async loadAuth() {
-                await axios.get('/auth/user')
-                    .then(({ data }) => {
-                        this.user = data.data
-                    })
-            },
+        async loadAuth() {
+            await axios.get('/auth/user')
+                .then(({ data }) => {
+                    this.user = data.data
+                })
         },
     },
 })

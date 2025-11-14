@@ -16,13 +16,13 @@ class UsersSeeder extends Seeder
         $sender = User::factory()->create([
             'name' => 'Bruce Wayne',
             'email' => 'sender@example.com',
-            'balance' => 1000,
+            'balance' => 100000000,
         ]);
 
         $receiver = User::factory()->create([
             'name' => 'Clark Kent',
             'email' => 'receiver@example.com',
-            'balance' => 0,
+            'balance' => 1000000,
         ]);
 
         User::factory()

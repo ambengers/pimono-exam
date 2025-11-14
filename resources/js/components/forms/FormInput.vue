@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 
 interface Props {
-    modelValue: string | number;
+    modelValue: string | number | null;
     id?: string;
     name?: string;
     type?: 'text' | 'email' | 'password' | 'number' | 'tel' | 'url' | 'search';

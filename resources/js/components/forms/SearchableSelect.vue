@@ -177,6 +177,8 @@ function debouncedSearch(query: string) {
         return;
     }
 
+    // Clear previous results immediately when starting a new search
+    asyncOptions.value = [];
     isLoading.value = true;
     debounceTimer = setTimeout(() => {
         performSearch(query);

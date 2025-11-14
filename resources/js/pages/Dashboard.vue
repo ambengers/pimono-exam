@@ -7,16 +7,24 @@ import DefaultButton from '@components/buttons/DefaultButton.vue';
 import Modal from '@components/Modal.vue';
 import SearchableSelect from '@components/forms/SearchableSelect.vue';
 import FormInput from '@components/forms/FormInput.vue';
+import TransactionsList from './components/dashboard/TransactionsList.vue';
 import { useForms } from '@composables/useForms';
+import { useToast } from '@composables/useToast';
 import { useAuthStore } from '@stores/auth';
+import type { Transaction } from '@/interfaces/transaction';
+import type { PaginatedResponse } from '@/interfaces/paginatedResponse';
 import axios from 'axios';
 
 const router = useRouter();
 const auth = useAuth();
 const { user } = auth;
+const toast = useToast();
 
 const isTransactionModalOpen = ref(false);
 const isSubmitting = ref(false);
+const transactions = ref<Transaction[]>([]);
+const pagination = ref<PaginatedResponse<Transaction> | null>(null);
+const isLoadingTransactions = ref(false);
 
 const { fields, resetErrors, setErrors, getError, resetForm } = useForms({
     receiver: null as number | null,
@@ -30,7 +38,6 @@ async function searchAccounts(query: string): Promise<any[]> {
         });
         return data.data || data || [];
     } catch (error) {
-        console.error('Failed to search accounts:', error);
         return [];
     }
 }
@@ -60,6 +67,46 @@ function handleCloseModal() {
     resetErrors();
 }
 
+async function fetchTransactions(page: number = 1) {
+    isLoadingTransactions.value = true;
+    try {
+        const { data } = await axios.get('/api/transactions', {
+            params: { page }
+        });
+        
+        
+        const transactionsData = data.data || [];
+        const meta = data.meta || {};
+        const links = data.links || [];
+        
+        transactions.value = transactionsData;
+        
+        pagination.value = {
+            data: transactionsData,
+            meta: {
+                path: meta.path || '',
+                current_page: meta.current_page || 1,
+                last_page: meta.last_page || 1,
+                per_page: meta.per_page || 15,
+                total: meta.total || 0,
+                from: meta.from || 0,
+                to: meta.to || 0,
+            },
+            links: links,
+        };
+    } catch (error) {
+        transactions.value = [];
+        pagination.value = null;
+    } finally {
+        isLoadingTransactions.value = false;
+    }
+}
+
+function handlePageChange(page: number) {
+    fetchTransactions(page);
+}
+
+
 async function handleSubmitTransaction() {
     if (isSubmitting.value) {
         return;
@@ -77,11 +124,19 @@ async function handleSubmitTransaction() {
         // Reload user to update balance
         const authStore = useAuthStore();
         await authStore.loadAuth();
+        // Reload transactions to show the new one
+        await fetchTransactions(pagination.value?.meta.current_page || 1);
         // Close modal and reset form
         handleCloseModal();
+        // Show success toast
+        toast.success('Successful transaction!');
     } catch (error: any) {
         if (error.response?.status === 422 && error.response?.data?.errors) {
             setErrors(error.response.data);
+            // Show error toast - extract first error message
+            const firstError = Object.values(error.response.data.errors)[0];
+            const errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+            toast.error(errorMessage || error.response.data);
         } else {
             const errorMessage = error.response?.data?.message || 'Transaction failed. Please try again.';
             setErrors({
@@ -89,6 +144,8 @@ async function handleSubmitTransaction() {
                     amount: [errorMessage]
                 }
             });
+            // Show error toast - can pass object or string
+            toast.error(error.response?.data || errorMessage);
         }
     } finally {
         isSubmitting.value = false;
@@ -97,6 +154,7 @@ async function handleSubmitTransaction() {
 
 onMounted(() => {
     resetErrors();
+    fetchTransactions();
 });
 </script>
 <template>
@@ -194,6 +252,17 @@ onMounted(() => {
                             </template>
                         </DefaultButton>
                     </div>
+                </div>
+
+                <!-- Transactions Section -->
+                <div class="mt-6">
+                    <TransactionsList
+                        :transactions="transactions"
+                        :is-loading="isLoadingTransactions"
+                        :user="user"
+                        :pagination="pagination"
+                        @page-change="handlePageChange"
+                    />
                 </div>
             </div>
         </main>

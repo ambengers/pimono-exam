@@ -14,13 +14,9 @@ class AuthController extends Controller
 {
     public function user()
     {
-        $user = Auth::user();
-        
-        if (!$user) {
-            return response()->json(['message' => 'Unauthenticated'], 401);
-        }
-        
-        return UserResource::make($user);
+        // This endpoint will respond with empty data
+        // if no user is currentlyauthenticated...
+        return UserResource::make(Auth::user());
     }
 
     public function login(Request $request)

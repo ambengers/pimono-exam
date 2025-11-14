@@ -11,7 +11,7 @@
                         <button
                             @click="handleLogout"
                             :disabled="auth.loading"
-                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                         >
                             Logout
                         </button>
@@ -58,10 +58,10 @@ const router = useRouter();
 const auth = useAuth();
 
 const handleLogout = async () => {
-    const result = await auth.logout();
-    if (result.success) {
-        router.push('/');
-    }
+    auth.logout()
+        .then((response) => {
+            router.push({ name: 'login' });
+        });
 };
 </script>
 

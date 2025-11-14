@@ -29,5 +29,9 @@ export function useAuth() {
         })
     }
 
-    return { isLoggedIn, login, register };
+    async function logout() {
+        return axios.post('/logout')
+    }
+
+    return { isLoggedIn, login, register, logout };
 }

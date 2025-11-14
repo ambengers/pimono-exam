@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id()->from(1001);
             $table->foreignId('sender_id')->constrained('users');
             $table->foreignId('receiver_id')->constrained('users');
-            $table->decimal('amount', 15, 2);
-            $table->decimal('commission_fee', 15, 2);
-            $table->decimal('total', 15, 2);
+            $table->decimal('amount', 15, 4);
+            $table->decimal('commission_fee', 15, 4);
+            $table->decimal('total', 15, 4);
             $table->timestamps();
         });
     }

@@ -14,7 +14,8 @@ class TransactionsController extends Controller
 {
     public function index(Request $request): AnonymousResourceCollection
     {
-        $transactions = Transaction::where('sender_id', Auth::id())
+        $transactions = Transaction::with(['sender', 'receiver'])
+            ->where('sender_id', Auth::id())
             ->orWhere('receiver_id', $request->user()->id)
             ->latest()
             ->paginate(15);

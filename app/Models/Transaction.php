@@ -22,12 +22,12 @@ class Transaction extends Model
         'total' => 'decimal:2',
     ];
 
-    protected function sender()
+    public function sender()
     {
         return $this->belongsTo(User::class, 'sender_id');
     }
 
-    protected function receiver()
+    public function receiver()
     {
         return $this->belongsTo(User::class, 'receiver_id');
     }

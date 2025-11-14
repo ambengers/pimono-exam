@@ -13,18 +13,24 @@ class UsersSeeder extends Seeder
      */
     public function run(): void
     {
-        $sender = User::create([
-            'name' => 'Sender',
+        $sender = User::factory()->create([
+            'name' => 'Bruce Wayne',
             'email' => 'sender@example.com',
-            'password' => Hash::make('password'),
             'balance' => 1000,
         ]);
 
-        $receiver = User::create([
-            'name' => 'Receiver',
+        $receiver = User::factory()->create([
+            'name' => 'Clark Kent',
             'email' => 'receiver@example.com',
-            'password' => Hash::make('password'),
             'balance' => 0,
         ]);
+
+        User::factory()
+            ->count(100)
+            ->create()
+            ->each(function ($user) {
+                $user->balance = fake()->randomFloat(2, 0, 10000);
+                $user->save();
+            });
     }
 }

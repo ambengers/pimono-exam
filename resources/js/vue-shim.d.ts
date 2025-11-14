@@ -4,3 +4,9 @@ declare module '*.vue' {
     export default component;
 }
 
+declare global {
+    interface Window {
+        axios: typeof import('axios').default;
+    }
+}
+

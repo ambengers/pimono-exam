@@ -22,23 +22,25 @@
                     <div class="space-y-4">
                         <FormInput
                             id="email"
-                            v-model="form.email"
+                            v-model="fields.email"
                             name="email"
                             type="email"
                             label="Email address"
                             placeholder="Enter your email"
                             autocomplete="email"
                             :required="true"
+                            :error="getError('email')"
                         />
                         <FormInput
                             id="password"
-                            v-model="form.password"
+                            v-model="fields.password"
                             name="password"
                             type="password"
                             label="Password"
                             placeholder="Enter your password"
                             autocomplete="current-password"
                             :required="true"
+                            :error="getError('password')"
                         />
                     </div>
 
@@ -61,7 +63,7 @@
                         </div>
                     </div>
 
-                    <div v-if="formError" class="rounded-lg bg-red-50 border border-red-200 p-4">
+                    <div v-if="getError('email') || getError('password')" class="rounded-lg bg-red-50 border border-red-200 p-4">
                         <div class="flex">
                             <div class="flex-shrink-0">
                                 <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -69,7 +71,8 @@
                                 </svg>
                             </div>
                             <div class="ml-3">
-                                <p class="text-sm font-medium text-red-800">{{ formError }}</p>
+                                <p v-if="getError('email')" class="text-sm font-medium text-red-800">{{ getError('email') }}</p>
+                                <p v-else-if="getError('password')" class="text-sm font-medium text-red-800">{{ getError('password') }}</p>
                             </div>
                         </div>
                     </div>
@@ -80,14 +83,11 @@
                             :disabled="isSubmitting"
                             class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                         >
-                            <span v-if="isSubmitting" class="flex items-center">
-                                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Signing in...
-                            </span>
-                            <span v-else>Sign in</span>
+                            <SubmitSpinner
+                                :loading="isSubmitting"
+                                loading-text="Signing in..."
+                                default-text="Sign in"
+                            />
                         </button>
                     </div>
 
@@ -121,23 +121,23 @@
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAuth } from '@composables/useAuth';
+import { useForms } from '@composables/useForms';
 import FormInput from '@components/forms/FormInput.vue';
+import SubmitSpinner from '@components/SubmitSpinner.vue';
 
 const router = useRouter();
 const route = useRoute();
 const auth = useAuth();
 
-const form = ref({
+const { fields, resetErrors, setErrors, getError } = useForms({
     email: '',
     password: '',
 });
 
-const formError = ref<string | null>(null);
 const isSubmitting = ref(false);
 
-// Clear any existing errors when component mounts
 onMounted(() => {
-    formError.value = null;
+    resetErrors();
 });
 
 const handleLogin = async () => {
@@ -146,17 +146,24 @@ const handleLogin = async () => {
         return;
     }
     
-    formError.value = null;
+    resetErrors();
     isSubmitting.value = true;
-    
+
     try {
-        const result = await auth.login(form.value.email, form.value.password);
-        
-        if (result.success) {
-            const redirect = route.query.redirect as string;
-            router.push(redirect || '/dashboard');
+        await auth.login(fields.value.email, fields.value.password);
+        router.push((route.query.redirect as string) || '/dashboard');
+    } catch (error: any) {
+        // Handle validation errors (422)
+        if (error.response?.status === 422 && error.response?.data?.errors) {
+            setErrors(error.response.data);
         } else {
-            formError.value = result.error || 'Login failed';
+            // Handle other errors (401, etc.)
+            const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
+            setErrors({
+                errors: {
+                    email: [errorMessage]
+                }
+            });
         }
     } finally {
         isSubmitting.value = false;

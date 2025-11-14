@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    /**
-     * Handle a login request to the application.
-     */
+    public function user()
+    {
+        return UserResource::make(Auth::user());
+    }
+
     public function login(Request $request)
     {
         $request->validate([
@@ -31,13 +34,10 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful',
-            'user' => $request->user(),
+            'user' => Auth::user(),
         ]);
     }
 
-    /**
-     * Handle a registration request to the application.
-     */
     public function register(Request $request)
     {
         $request->validate([

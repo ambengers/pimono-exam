@@ -1,5 +1,4 @@
 const routes = [
-    // Errors...
     {
         path: '/',
         redirect: '/login', // Will be overridden by navigation guard based on auth state
@@ -7,19 +6,19 @@ const routes = [
     {
         path: '/login',
         name: 'login',
-        component: () => import('./pages/Login.vue'),
-        meta: { requiresAuth: false },
+        component: () => import('@pages/Login.vue'),
+        meta: { requiresAuth: false, guestOnly: true },
     },
     {
         path: '/register',
         name: 'register',
-        component: () => import('./pages/Register.vue'),
-        meta: { requiresAuth: false },
+        component: () => import('@pages/Register.vue'),
+        meta: { requiresAuth: false, guestOnly: true },
     },
     {
         path: '/dashboard',
         name: 'dashboard',
-        component: () => import('./pages/Dashboard.vue'),
+        component: () => import('@pages/Dashboard.vue'),
         meta: { requiresAuth: true },
     },
 ]

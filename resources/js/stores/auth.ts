@@ -1,9 +1,9 @@
-import {defineStore} from 'pinia'
+import { defineStore } from 'pinia'
+import axios from 'axios'
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
         user: null,
-        organization: null,
     }),
 
     getters: {
@@ -11,13 +11,13 @@ export const useAuthStore = defineStore('auth', {
     },
 
     actions: {
-        async loadAuth() {
-            await axios
-                .get('/auth/user')
-                .then(({ data }) => {
-                    this.user = data.data
-                    this.organization = this.user.organization
-                })
+        actions: {
+            async loadAuth() {
+                await axios.get('/auth/user')
+                    .then(({ data }) => {
+                        this.user = data.data
+                    })
+            },
         },
     },
 })

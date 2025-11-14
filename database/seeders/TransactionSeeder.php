@@ -18,7 +18,7 @@ class TransactionSeeder extends Seeder
         $receiver = User::where('email', 'receiver@example.com')->first();
 
         for ($i = 0; $i < 10000; $i++) {
-            Transaction::create([
+            Transaction::factory()->create([
                 'sender_id' => $sender->id,
                 'receiver_id' => $receiver->id,
                 'amount' => $amount = fake()->randomFloat(2, 1, 100),

@@ -7,6 +7,7 @@ use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\TransactionRequest;
+use App\Exceptions\SenderHasInsufficientFunds;
 
 class CreateTransaction
 {
@@ -25,6 +26,10 @@ class CreateTransaction
             $commission = $amount * Transaction::COMMISSION_FEE;
 
             $totalDebit = Transaction::getTotalDebit($amount);
+
+            if ($sender->balance < $totalDebit) {
+                throw new SenderHasInsufficientFunds();
+            }
         
             $sender->balance -= $totalDebit;
             $receiver->balance += $amount;
@@ -37,6 +42,7 @@ class CreateTransaction
                 'receiver_id' => $receiver->id,
                 'amount' => $amount,
                 'commission_fee' => $commission,
+                'total' => $totalDebit,
             ]);
         
         }, 3);

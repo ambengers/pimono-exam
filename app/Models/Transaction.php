@@ -13,11 +13,13 @@ class Transaction extends Model
         'receiver_id',
         'amount',
         'commission_fee',
+        'total',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'commission_fee' => 'decimal:2',
+        'total' => 'decimal:2',
     ];
 
     protected function sender()

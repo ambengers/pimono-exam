@@ -11,7 +11,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Transaction;
 
-class TransactionCreatedEvent
+class TransactionCreatedEvent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -35,6 +35,31 @@ class TransactionCreatedEvent
     {
         return [
             new PrivateChannel(Transaction::CHANNEL_NAME),
+        ];
+    }
+
+    /**
+     * The event's broadcast name.
+     *
+     * @return string
+     */
+    public function broadcastAs(): string
+    {
+        return 'TransactionCreated';
+    }
+
+    /**
+     * Get the data to broadcast.
+     *
+     * @return array<string, mixed>
+     */
+    public function broadcastWith(): array
+    {
+        return [
+            'transactionId' => $this->transactionId,
+            'senderId' => $this->senderId,
+            'receiverId' => $this->receiverId,
+            'message' => $this->message,
         ];
     }
 }

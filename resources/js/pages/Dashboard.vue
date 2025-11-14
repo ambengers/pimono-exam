@@ -10,6 +10,7 @@ import FormInput from '@components/forms/FormInput.vue';
 import TransactionsList from './components/dashboard/TransactionsList.vue';
 import { useForms } from '@composables/useForms';
 import { useToast } from '@composables/useToast';
+import { useCurrency } from '@composables/useCurrency';
 import { useAuthStore } from '@stores/auth';
 import type { Transaction } from '@/interfaces/transaction';
 import type { PaginatedResponse } from '@/interfaces/paginatedResponse';
@@ -19,6 +20,7 @@ const router = useRouter();
 const auth = useAuth();
 const { user } = auth;
 const toast = useToast();
+const { formatCurrency } = useCurrency();
 
 const isTransactionModalOpen = ref(false);
 const isSubmitting = ref(false);
@@ -40,15 +42,6 @@ async function searchAccounts(query: string): Promise<any[]> {
     } catch (error) {
         return [];
     }
-}
-
-function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(amount);
 }
 
 function handleLogout() {

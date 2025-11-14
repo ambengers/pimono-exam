@@ -1,7 +1,7 @@
 const routes = [
     {
         path: '/',
-        redirect: '/login', // Will be overridden by navigation guard based on auth state
+        redirect: '/login',
     },
     {
         path: '/login',

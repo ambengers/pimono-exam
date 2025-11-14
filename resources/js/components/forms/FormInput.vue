@@ -80,7 +80,7 @@ const handleBlur = () => {
             :required="required"
             :disabled="disabled"
             :autocomplete="autocomplete"
-            :class="inputClasses"
+            :class="[inputClasses, { 'hide-number-spinner': type === 'number' }]"
             @input="handleInput"
             @blur="handleBlur"
         />
@@ -88,4 +88,18 @@ const handleBlur = () => {
         <p v-if="hint && !error" class="mt-1 text-sm text-gray-500">{{ hint }}</p>
     </div>
 </template>
+
+<style scoped>
+.hide-number-spinner::-webkit-outer-spin-button,
+.hide-number-spinner::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+.hide-number-spinner[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+</style>
 

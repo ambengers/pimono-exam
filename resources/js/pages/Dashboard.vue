@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useAuth } from '@composables/useAuth';
 import LogoutIcon from '@components/icons/LogoutIcon.vue';
 import { useRouter } from 'vue-router';
@@ -7,6 +7,8 @@ import DefaultButton from '@components/buttons/DefaultButton.vue';
 import Modal from '@components/Modal.vue';
 import SearchableSelect from '@components/forms/SearchableSelect.vue';
 import FormInput from '@components/forms/FormInput.vue';
+import { useForms } from '@composables/useForms';
+import { useAuthStore } from '@stores/auth';
 import axios from 'axios';
 
 const router = useRouter();
@@ -14,17 +16,12 @@ const auth = useAuth();
 const { user } = auth;
 
 const isTransactionModalOpen = ref(false);
-const selectedReceiver = ref<number | null>(null);
-const transactionAmount = ref<string>('');
+const isSubmitting = ref(false);
 
-function formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(amount);
-}
+const { fields, resetErrors, setErrors, getError, resetForm } = useForms({
+    receiver: null as number | null,
+    amount: '',
+});
 
 async function searchAccounts(query: string): Promise<any[]> {
     try {
@@ -36,6 +33,15 @@ async function searchAccounts(query: string): Promise<any[]> {
         console.error('Failed to search accounts:', error);
         return [];
     }
+}
+
+function formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(amount);
 }
 
 function handleLogout() {
@@ -50,9 +56,48 @@ function handleMakeTransaction() {
 
 function handleCloseModal() {
     isTransactionModalOpen.value = false;
-    selectedReceiver.value = null;
-    transactionAmount.value = '';
+    resetForm();
+    resetErrors();
 }
+
+async function handleSubmitTransaction() {
+    if (isSubmitting.value) {
+        return;
+    }
+
+    resetErrors();
+    isSubmitting.value = true;
+
+    try {
+        await axios.post('/api/transactions', {
+            receiver: fields.value.receiver,
+            amount: fields.value.amount,
+        });
+
+        // Reload user to update balance
+        const authStore = useAuthStore();
+        await authStore.loadAuth();
+        // Close modal and reset form
+        handleCloseModal();
+    } catch (error: any) {
+        if (error.response?.status === 422 && error.response?.data?.errors) {
+            setErrors(error.response.data);
+        } else {
+            const errorMessage = error.response?.data?.message || 'Transaction failed. Please try again.';
+            setErrors({
+                errors: {
+                    amount: [errorMessage]
+                }
+            });
+        }
+    } finally {
+        isSubmitting.value = false;
+    }
+}
+
+onMounted(() => {
+    resetErrors();
+});
 </script>
 <template>
     <div class="min-h-screen bg-gray-50">
@@ -156,29 +201,49 @@ function handleCloseModal() {
         <!-- Transaction Modal -->
         <Modal v-model="isTransactionModalOpen" @close="handleCloseModal">
             <template #title>Make a Transaction</template>
-            <div class="space-y-4">
-                <SearchableSelect
-                    v-model="selectedReceiver"
-                    :async-search="searchAccounts"
-                    label="Receiver"
-                    placeholder="Select a receiver"
-                    search-placeholder="Search by Account ID, Name or Email..."
-                    option-label="name"
-                    option-value="id"
-                    :required="true"
-                />
-                <FormInput
-                    v-model="transactionAmount"
-                    id="amount"
-                    name="amount"
-                    type="number"
-                    label="Amount"
-                    placeholder="Enter amount"
-                    :required="true"
-                    step="0.01"
-                    min="0.01"
-                />
-            </div>
+            <form @submit.prevent="handleSubmitTransaction">
+                <div class="space-y-4">
+                    <SearchableSelect
+                        v-model="fields.receiver"
+                        :async-search="searchAccounts"
+                        label="Receiver"
+                        placeholder="Select a receiver"
+                        search-placeholder="Search by Account ID, Name or Email..."
+                        option-label="name"
+                        option-value="id"
+                        :required="true"
+                        :error="getError('receiver')"
+                    />
+                    <FormInput
+                        v-model="fields.amount"
+                        id="amount"
+                        name="amount"
+                        type="number"
+                        label="Amount"
+                        placeholder="Enter amount"
+                        :required="true"
+                        min="0.01"
+                        :error="getError('amount')"
+                    />
+                </div>
+            </form>
+            <template #footer>
+                <div class="flex justify-end space-x-3">
+                    <button
+                        type="button"
+                        @click="handleCloseModal"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:cursor-pointer hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <DefaultButton
+                        @click="handleSubmitTransaction"
+                        :loading="isSubmitting"
+                        loading-text="Processing..."
+                        text="Submit Transaction"
+                    />
+                </div>
+            </template>
         </Modal>
     </div>
 </template>

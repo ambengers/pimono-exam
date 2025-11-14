@@ -7,6 +7,8 @@ declare module '*.vue' {
 declare global {
     interface Window {
         axios: typeof import('axios').default;
+        Pusher: typeof import('pusher-js').default;
+        Echo: typeof import('laravel-echo').default;
     }
 }
 

@@ -31,8 +31,15 @@ export const useAuthStore = defineStore('auth', () => {
             const response = await axios.get('/api/user');
             user.value = response.data;
         } catch (err: any) {
-            error.value = err.response?.data?.message || 'Failed to fetch user';
-            user.value = null;
+            // Don't set error for 401/403 - user is simply not authenticated
+            // This is expected behavior for unauthenticated users
+            if (err.response?.status === 401 || err.response?.status === 403) {
+                user.value = null;
+                error.value = null;
+            } else {
+                error.value = err.response?.data?.message || 'Failed to fetch user';
+                user.value = null;
+            }
         } finally {
             loading.value = false;
         }

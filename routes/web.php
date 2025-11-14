@@ -18,6 +18,7 @@ Route::middleware(['auth', 'json'])->group(function () {
 
         Route::get('transactions', [TransactionsController::class, 'index'])->name('transactions.index');
         Route::post('transactions', [TransactionsController::class, 'store'])->name('transactions.store');
+        Route::get('transactions/{transaction}', [TransactionsController::class, 'show'])->name('transactions.show');
     });
 
 

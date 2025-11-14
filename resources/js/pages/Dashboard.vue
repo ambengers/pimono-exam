@@ -106,6 +106,28 @@ function handlePageChange(page: number) {
     fetchTransactions(page);
 }
 
+function handleNewTransaction(transaction: Transaction) {
+    const exists = transactions.value.some(t => t.id === transaction.id);
+    if (!exists) {
+        transactions.value.unshift(transaction);
+
+        if (pagination.value) {
+            pagination.value.meta.total += 1;
+            pagination.value.meta.to += 1;
+        }
+    }
+}
+
+async function handleTransactionReceived(transaction: Transaction) {
+    const authStore = useAuthStore();
+    await authStore.loadAuth();
+    
+    // Show info toast if user is the receiver
+    if (user.value && transaction.receiver_id === user.value.id) {
+        toast.info('You have received a new transaction. Account balance has been updated.');
+    }
+}
+
 
 async function handleSubmitTransaction() {
     if (isSubmitting.value) {
@@ -121,19 +143,18 @@ async function handleSubmitTransaction() {
             amount: fields.value.amount,
         });
 
-        // Reload user to update balance
+
         const authStore = useAuthStore();
         await authStore.loadAuth();
-        // Reload transactions to show the new one
+        
         await fetchTransactions(pagination.value?.meta.current_page || 1);
-        // Close modal and reset form
+
         handleCloseModal();
-        // Show success toast
+
         toast.success('Successful transaction!');
     } catch (error: any) {
         if (error.response?.status === 422 && error.response?.data?.errors) {
             setErrors(error.response.data);
-            // Show error toast - extract first error message
             const firstError = Object.values(error.response.data.errors)[0];
             const errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
             toast.error(errorMessage || error.response.data);
@@ -144,7 +165,6 @@ async function handleSubmitTransaction() {
                     amount: [errorMessage]
                 }
             });
-            // Show error toast - can pass object or string
             toast.error(error.response?.data || errorMessage);
         }
     } finally {
@@ -262,6 +282,8 @@ onMounted(() => {
                         :user="user"
                         :pagination="pagination"
                         @page-change="handlePageChange"
+                        @new-transaction="handleNewTransaction"
+                        @transaction-received="handleTransactionReceived"
                     />
                 </div>
             </div>

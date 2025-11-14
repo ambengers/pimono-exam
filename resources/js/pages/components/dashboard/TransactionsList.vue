@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import Pagination from '@components/Pagination.vue';
 import SendTransactionIcon from '@components/icons/SendTransactionIcon.vue';
 import ReceiveTransactionIcon from '@components/icons/ReceiveTransactionIcon.vue';
 import { useDate } from '@composables/useDate';
 import { useCurrency } from '@composables/useCurrency';
+import { useEcho } from '@composables/useEcho';
+import axios from 'axios';
 import type { Transaction } from '@/interfaces/transaction';
 import type { User } from '@/interfaces/user';
 import type { PaginatedResponse } from '@/interfaces/paginatedResponse';
@@ -20,7 +22,14 @@ const props = defineProps<Props>();
 
 const emit = defineEmits<{
     'page-change': [page: number];
+    'new-transaction': [transaction: Transaction];
+    'refresh-transactions': [];
+    'transaction-received': [transaction: Transaction];
 }>();
+
+const echo = useEcho();
+const { privateChannel, leaveChannel } = echo;
+const hasNewTransactions = ref(false);
 
 const expandedTransactionId = ref<number | null>(null);
 const { formatDate } = useDate();
@@ -39,16 +48,13 @@ function getTransactionCounterparty(transaction: Transaction): string {
 
 function toggleTransaction(transactionId: number) {
     if (expandedTransactionId.value === transactionId) {
-        // Close the currently open row
         expandedTransactionId.value = null;
     } else if (expandedTransactionId.value !== null) {
-        // If another row is open, close it first, then open the new one after animation
         expandedTransactionId.value = null;
         setTimeout(() => {
             expandedTransactionId.value = transactionId;
         }, 200);
     } else {
-        // No row is open, just open the clicked one
         expandedTransactionId.value = transactionId;
     }
 }
@@ -56,16 +62,98 @@ function toggleTransaction(transactionId: number) {
 function isTransactionExpanded(transactionId: number): boolean {
     return expandedTransactionId.value === transactionId;
 }
+
+function isOnFirstPage(): boolean {
+    return props.pagination?.meta.current_page === 1;
+}
+
+async function fetchTransactionById(transactionId: number): Promise<Transaction | null> {
+    try {
+        const { data } = await axios.get(`/api/transactions/${transactionId}`);
+        return data.data;
+    } catch (error) {
+        console.error('Failed to fetch transaction:', error);
+        return null;
+    }
+}
+
+function handleNewTransaction(transaction: Transaction) {
+    if (isOnFirstPage()) {
+        // Add transaction to the top of the list
+        emit('new-transaction', transaction);
+    } else {
+        // Show notification that new transactions are available
+        hasNewTransactions.value = true;
+    }
+}
+
+function handleViewNewTransactions() {
+    hasNewTransactions.value = false;
+    emit('page-change', 1);
+}
+
+onMounted(() => {
+    if (!props.user) {
+        return;
+    }
+
+    // Listen to private transactions channel
+    const channel = privateChannel('transactions-channel');
+    
+    // Listen for TransactionCreated event
+    channel.listen('.TransactionCreated', (data: any) => {
+        const { transactionId, senderId, receiverId } = data;
+        
+        // Check if the authenticated user is involved in this transaction
+        if (props.user && (props.user.id === senderId || props.user.id === receiverId)) {
+            // Fetch the full transaction details
+            fetchTransactionById(transactionId).then((transaction) => {
+                if (transaction) {
+                    handleNewTransaction(transaction);
+                    // Emit event to refresh user balance
+                    emit('transaction-received', transaction);
+                }
+            });
+        }
+    });
+});
+
+// Clear notification when navigating to first page
+watch(() => props.pagination?.meta.current_page, (newPage) => {
+    if (newPage === 1) {
+        hasNewTransactions.value = false;
+    }
+});
+
+onUnmounted(() => {
+    // Leave the channel when component is unmounted
+    leaveChannel('transactions-channel');
+});
 </script>
 <template>
     <div class="bg-white rounded-xl shadow-lg overflow-hidden w-full">
         <div class="px-6 py-4 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-                <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                Transaction History
-            </h3>
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                    <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Transaction History
+                </h3>
+                <!-- New Transactions Notification -->
+                <Transition name="fade">
+                    <button
+                        v-if="hasNewTransactions && !isOnFirstPage()"
+                        @click="handleViewNewTransactions"
+                        class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors cursor-pointer"
+                    >
+                        <svg class="h-4 w-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        New transactions available
+                    </button>
+                </Transition>
+            </div>
         </div>
 
         <!-- Loading State (only show on initial load when there are no transactions) -->
@@ -229,6 +317,16 @@ function isTransactionExpanded(transactionId: number): boolean {
     opacity: 1;
     max-height: 500px;
     transform: translateY(0);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
 }
 </style>
 

@@ -20,6 +20,9 @@ return new class extends Migration
             $table->rememberToken();
             $table->decimal('balance', 15, 4)->default(0);
             $table->timestamps();
+            
+            $table->index('name');
+            $table->index(['name', 'email']);
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

@@ -24,6 +24,11 @@ return new class extends Migration
             $table->decimal('receiver_balance_before', 15, 4);
             $table->decimal('receiver_balance_after', 15, 4);
             $table->timestamps();
+
+            $table->index('created_at');
+
+            $table->index(['sender_id', 'created_at']);
+            $table->index(['receiver_id', 'created_at']);
         });
     }
 

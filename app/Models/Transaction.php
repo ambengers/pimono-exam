@@ -10,6 +10,7 @@ class Transaction extends Model
     use HasFactory;
 
     const COMMISSION_FEE = 0.015;
+    const CHANNEL_NAME = 'transactions-channel';
 
     protected $fillable = [
         'sender_id',

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id()->from(1001);
-            $table->foreignId('sender_id')->constrained('users');
-            $table->foreignId('receiver_id')->constrained('users');
+            $table->foreignId('sender_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('receiver_id')->constrained('users')->onDelete('cascade');
             $table->decimal('amount', 15, 4);
             $table->decimal('commission_fee', 15, 4);
             $table->decimal('commission_fee_percentage', 5, 4);

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Transaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Events\TransactionCreatedEvent;
 use App\Http\Requests\TransactionRequest;
 use App\Exceptions\SenderHasInsufficientFunds;
 
@@ -43,7 +44,7 @@ class CreateTransaction
             $sender->save();
             $receiver->save();
         
-            return Transaction::create([
+            $transaction = Transaction::create([
                 'sender_id' => $sender->id,
                 'receiver_id' => $receiver->id,
                 'amount' => $amount,
@@ -55,7 +56,10 @@ class CreateTransaction
                 'receiver_balance_before' => $receiverBalanceBefore,
                 'receiver_balance_after' => $receiverBalanceAfter,
             ]);
-        
+
+            event(new TransactionCreatedEvent($transaction->getKey(), 'Transaction created successfully'));
+
+            return $transaction;
         }, 3);
     }
 }

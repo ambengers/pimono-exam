@@ -27,4 +27,17 @@ class TransactionsController extends Controller
     {
         return TransactionResource::make($request->persist());
     }
+
+    public function show(string $transaction): JsonResource
+    {
+        $transaction = Transaction::with(['sender', 'receiver'])
+            ->where('id', $transaction)
+            ->where(function ($query) {
+                $query->where('sender_id', Auth::id())
+                    ->orWhere('receiver_id', Auth::id());
+            })
+            ->firstOrFail();
+
+        return TransactionResource::make($transaction);
+    }
 }

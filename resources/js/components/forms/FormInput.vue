@@ -1,27 +1,3 @@
-<template>
-    <div>
-        <label v-if="label && !hideLabel" :for="id" class="block text-sm font-medium text-gray-700 mb-1">
-            {{ label }}
-            <span v-if="required" class="text-red-500">*</span>
-        </label>
-        <input
-            :id="id"
-            :name="name"
-            :type="type"
-            :value="modelValue"
-            :placeholder="placeholder"
-            :required="required"
-            :disabled="disabled"
-            :autocomplete="autocomplete"
-            :class="inputClasses"
-            @input="handleInput"
-            @blur="handleBlur"
-        />
-        <p v-if="error" class="mt-1 text-sm text-red-600">{{ error }}</p>
-        <p v-if="hint && !error" class="mt-1 text-sm text-gray-500">{{ hint }}</p>
-    </div>
-</template>
-
 <script setup lang="ts">
 import { computed } from 'vue';
 
@@ -89,4 +65,27 @@ const handleBlur = () => {
     emit('blur');
 };
 </script>
+<template>
+    <div>
+        <label v-if="label && !hideLabel" :for="id" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ label }}
+            <span v-if="required" class="text-red-500">*</span>
+        </label>
+        <input
+            :id="id"
+            :name="name"
+            :type="type"
+            :value="modelValue"
+            :placeholder="placeholder"
+            :required="required"
+            :disabled="disabled"
+            :autocomplete="autocomplete"
+            :class="inputClasses"
+            @input="handleInput"
+            @blur="handleBlur"
+        />
+        <p v-if="error" class="mt-1 text-sm text-red-600">{{ error }}</p>
+        <p v-if="hint && !error" class="mt-1 text-sm text-gray-500">{{ hint }}</p>
+    </div>
+</template>
 

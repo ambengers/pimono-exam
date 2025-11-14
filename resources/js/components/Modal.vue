@@ -1,3 +1,47 @@
+<script setup lang="ts">
+import { onMounted, onUnmounted } from 'vue';
+
+interface Props {
+    modelValue: boolean;
+    closeOnBackdrop?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+    closeOnBackdrop: true,
+});
+
+const emit = defineEmits<{
+    'update:modelValue': [value: boolean];
+    close: [];
+}>();
+
+function handleClose() {
+    emit('update:modelValue', false);
+    emit('close');
+}
+
+function handleBackdropClick() {
+    if (props.closeOnBackdrop) {
+        handleClose();
+    }
+}
+
+// Close on ESC key
+function handleEscape(e: KeyboardEvent) {
+    if (e.key === 'Escape' && props.modelValue) {
+        handleClose();
+    }
+}
+
+// Add event listener for ESC key
+onMounted(() => {
+    document.addEventListener('keydown', handleEscape);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('keydown', handleEscape);
+});
+</script>
 <template>
     <Teleport to="body">
         <Transition name="modal">
@@ -46,51 +90,6 @@
     </Teleport>
 </template>
 
-<script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue';
-
-interface Props {
-    modelValue: boolean;
-    closeOnBackdrop?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-    closeOnBackdrop: true,
-});
-
-const emit = defineEmits<{
-    'update:modelValue': [value: boolean];
-    close: [];
-}>();
-
-function handleClose() {
-    emit('update:modelValue', false);
-    emit('close');
-}
-
-function handleBackdropClick() {
-    if (props.closeOnBackdrop) {
-        handleClose();
-    }
-}
-
-// Close on ESC key
-function handleEscape(e: KeyboardEvent) {
-    if (e.key === 'Escape' && props.modelValue) {
-        handleClose();
-    }
-}
-
-// Add event listener for ESC key
-onMounted(() => {
-    document.addEventListener('keydown', handleEscape);
-});
-
-onUnmounted(() => {
-    document.removeEventListener('keydown', handleEscape);
-});
-</script>
-
 <style scoped>
 .modal-enter-active,
 .modal-leave-active {
@@ -113,4 +112,3 @@ onUnmounted(() => {
     transform: scale(0.95);
 }
 </style>
-

@@ -1,82 +1,5 @@
-<template>
-    <div class="relative">
-        <label v-if="label && !hideLabel" :for="id" class="block text-sm font-medium text-gray-700 mb-1">
-            {{ label }}
-            <span v-if="required" class="text-red-500">*</span>
-        </label>
-        
-        <div class="relative" ref="dropdownRef">
-            <!-- Input Field -->
-            <div
-                @click="toggleDropdown"
-                :class="inputClasses"
-                class="cursor-pointer"
-            >
-                <div class="flex items-center justify-between">
-                    <span :class="{ 'text-gray-500': !selectedOption }">
-                        {{ selectedOption ? getOptionLabel(selectedOption) : placeholder }}
-                    </span>
-                    <svg
-                        class="h-5 w-5 text-gray-400 transition-transform duration-200"
-                        :class="{ 'rotate-180': isOpen }"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </div>
-            </div>
-
-            <!-- Dropdown Menu -->
-            <Transition name="dropdown">
-                <div
-                    v-if="isOpen"
-                    class="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
-                >
-                    <!-- Search Input -->
-                    <div class="p-2 border-b border-gray-200 sticky top-0 bg-white">
-                        <input
-                            ref="searchInputRef"
-                            v-model="searchQuery"
-                            type="text"
-                            :placeholder="searchPlaceholder"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            @click.stop
-                        />
-                    </div>
-
-                    <!-- Options List -->
-                    <ul class="py-1">
-                        <li
-                            v-if="filteredOptions.length === 0"
-                            class="px-4 py-2 text-sm text-gray-500 text-center"
-                        >
-                            {{ noResultsText }}
-                        </li>
-                        <li
-                            v-for="option in filteredOptions"
-                            :key="getOptionValue(option)"
-                            @click="selectOption(option)"
-                            :class="[
-                                'px-4 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors',
-                                isSelected(option) ? 'bg-indigo-100 text-indigo-900 font-medium' : 'text-gray-900'
-                            ]"
-                        >
-                            {{ getOptionLabel(option) }}
-                        </li>
-                    </ul>
-                </div>
-            </Transition>
-        </div>
-
-        <p v-if="error" class="mt-1 text-sm text-red-600">{{ error }}</p>
-        <p v-if="hint && !error" class="mt-1 text-sm text-gray-500">{{ hint }}</p>
-    </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 
 interface Option {
     [key: string]: any;
@@ -215,6 +138,82 @@ onUnmounted(() => {
     document.removeEventListener('click', handleClickOutside);
 });
 </script>
+<template>
+    <div class="relative">
+        <label v-if="label && !hideLabel" :for="id" class="block text-sm font-medium text-gray-700 mb-1">
+            {{ label }}
+            <span v-if="required" class="text-red-500">*</span>
+        </label>
+        
+        <div class="relative" ref="dropdownRef">
+            <!-- Input Field -->
+            <div
+                @click="toggleDropdown"
+                :class="inputClasses"
+                class="cursor-pointer"
+            >
+                <div class="flex items-center justify-between">
+                    <span :class="{ 'text-gray-500': !selectedOption }">
+                        {{ selectedOption ? getOptionLabel(selectedOption) : placeholder }}
+                    </span>
+                    <svg
+                        class="h-5 w-5 text-gray-400 transition-transform duration-200"
+                        :class="{ 'rotate-180': isOpen }"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Dropdown Menu -->
+            <Transition name="dropdown">
+                <div
+                    v-if="isOpen"
+                    class="absolute z-50 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+                >
+                    <!-- Search Input -->
+                    <div class="p-2 border-b border-gray-200 sticky top-0 bg-white">
+                        <input
+                            ref="searchInputRef"
+                            v-model="searchQuery"
+                            type="text"
+                            :placeholder="searchPlaceholder"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                            @click.stop
+                        />
+                    </div>
+
+                    <!-- Options List -->
+                    <ul class="py-1">
+                        <li
+                            v-if="filteredOptions.length === 0"
+                            class="px-4 py-2 text-sm text-gray-500 text-center"
+                        >
+                            {{ noResultsText }}
+                        </li>
+                        <li
+                            v-for="option in filteredOptions"
+                            :key="getOptionValue(option)"
+                            @click="selectOption(option)"
+                            :class="[
+                                'px-4 py-2 text-sm cursor-pointer hover:bg-indigo-50 transition-colors',
+                                isSelected(option) ? 'bg-indigo-100 text-indigo-900 font-medium' : 'text-gray-900'
+                            ]"
+                        >
+                            {{ getOptionLabel(option) }}
+                        </li>
+                    </ul>
+                </div>
+            </Transition>
+        </div>
+
+        <p v-if="error" class="mt-1 text-sm text-red-600">{{ error }}</p>
+        <p v-if="hint && !error" class="mt-1 text-sm text-gray-500">{{ hint }}</p>
+    </div>
+</template>
 
 <style scoped>
 .dropdown-enter-active,
@@ -228,4 +227,3 @@ onUnmounted(() => {
     transform: translateY(-10px);
 }
 </style>
-

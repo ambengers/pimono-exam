@@ -10,8 +10,40 @@ function generateId(): string {
     return `toast-${++toastIdCounter}-${Date.now()}`;
 }
 
+type ToastInput = string | { message?: string } | Array<{ message?: string }>;
+
+function extractMessage(input: ToastInput): string {
+    if (typeof input === 'string') {
+        return input;
+    }
+    
+    if (Array.isArray(input)) {
+        // Search for message in array items
+        for (const item of input) {
+            if (item && typeof item === 'object' && 'message' in item && typeof item.message === 'string') {
+                return item.message;
+            }
+        }
+        // If no message found, try first item if it's a string
+        if (input.length > 0 && typeof input[0] === 'string') {
+            return input[0];
+        }
+        return 'An error occurred';
+    }
+    
+    if (input && typeof input === 'object') {
+        if ('message' in input && typeof input.message === 'string') {
+            return input.message;
+        }
+        return 'An error occurred';
+    }
+    
+    return 'An error occurred';
+}
+
 export function useToast() {
-    function show(message: string, type: Toast['type'] = 'info', duration?: number): string {
+    function show(input: ToastInput, type: Toast['type'] = 'info', duration?: number): string {
+        const message = extractMessage(input);
         const id = generateId();
         const toast: Toast = {
             id,
@@ -24,20 +56,20 @@ export function useToast() {
         return id;
     }
 
-    function success(message: string, duration?: number): string {
-        return show(message, 'success', duration);
+    function success(input: ToastInput, duration?: number): string {
+        return show(input, 'success', duration);
     }
 
-    function error(message: string, duration?: number): string {
-        return show(message, 'error', duration);
+    function error(input: ToastInput, duration?: number): string {
+        return show(input, 'error', duration);
     }
 
-    function warning(message: string, duration?: number): string {
-        return show(message, 'warning', duration);
+    function warning(input: ToastInput, duration?: number): string {
+        return show(input, 'warning', duration);
     }
 
-    function info(message: string, duration?: number): string {
-        return show(message, 'info', duration);
+    function info(input: ToastInput, duration?: number): string {
+        return show(input, 'info', duration);
     }
 
     function remove(id: string): void {

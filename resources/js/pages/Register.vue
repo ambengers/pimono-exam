@@ -1,3 +1,64 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '@composables/useAuth';
+import { useForms } from '@composables/useForms';
+import FormInput from '@components/forms/FormInput.vue';
+import SubmitSpinner from '@components/SubmitSpinner.vue';
+
+const router = useRouter();
+const auth = useAuth();
+
+const { fields, resetErrors, setErrors, getError } = useForms({
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+});
+
+const isSubmitting = ref(false);
+
+// Clear any existing errors when component mounts
+onMounted(() => {
+    resetErrors();
+});
+
+const handleRegister = async () => {
+    // Prevent double submission
+    if (isSubmitting.value) {
+        return;
+    }
+    
+    resetErrors();
+    isSubmitting.value = true;
+    
+    try {
+        await auth.register(
+            fields.value.name,
+            fields.value.email,
+            fields.value.password,
+            fields.value.password_confirmation
+        );
+        
+        router.push('/dashboard');
+    } catch (error: any) {
+        // Handle validation errors (422)
+        if (error.response?.status === 422 && error.response?.data?.errors) {
+            setErrors(error.response.data);
+        } else {
+            // Handle other errors
+            const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+            setErrors({
+                errors: {
+                    email: [errorMessage]
+                }
+            });
+        }
+    } finally {
+        isSubmitting.value = false;
+    }
+};
+</script>
 <template>
     <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full">
@@ -122,66 +183,3 @@
         </div>
     </div>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuth } from '@composables/useAuth';
-import { useForms } from '@composables/useForms';
-import FormInput from '@components/forms/FormInput.vue';
-import SubmitSpinner from '@components/SubmitSpinner.vue';
-
-const router = useRouter();
-const auth = useAuth();
-
-const { fields, resetErrors, setErrors, getError } = useForms({
-    name: '',
-    email: '',
-    password: '',
-    password_confirmation: '',
-});
-
-const isSubmitting = ref(false);
-
-// Clear any existing errors when component mounts
-onMounted(() => {
-    resetErrors();
-});
-
-const handleRegister = async () => {
-    // Prevent double submission
-    if (isSubmitting.value) {
-        return;
-    }
-    
-    resetErrors();
-    isSubmitting.value = true;
-    
-    try {
-        await auth.register(
-            fields.value.name,
-            fields.value.email,
-            fields.value.password,
-            fields.value.password_confirmation
-        );
-        
-        router.push('/dashboard');
-    } catch (error: any) {
-        // Handle validation errors (422)
-        if (error.response?.status === 422 && error.response?.data?.errors) {
-            setErrors(error.response.data);
-        } else {
-            // Handle other errors
-            const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
-            setErrors({
-                errors: {
-                    email: [errorMessage]
-                }
-            });
-        }
-    } finally {
-        isSubmitting.value = false;
-    }
-};
-</script>
-

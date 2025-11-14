@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import type { User } from '@/interfaces/user'
 
 export const useAuthStore = defineStore('auth', {
-    state: () => ({
+    state: (): { user: User | null } => ({
         user: null,
     }),
 

@@ -1,3 +1,54 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '@composables/useAuth';
+import { useForms } from '@composables/useForms';
+import FormInput from '@components/forms/FormInput.vue';
+import SubmitSpinner from '@components/SubmitSpinner.vue';
+
+const router = useRouter();
+const auth = useAuth();
+
+const { fields, resetErrors, setErrors, getError } = useForms({
+    email: '',
+    password: '',
+});
+
+const isSubmitting = ref(false);
+
+onMounted(() => {
+    resetErrors();
+});
+
+const handleLogin = async () => {
+    if (isSubmitting.value) {
+        return;
+    }
+    
+    resetErrors();
+    isSubmitting.value = true;
+
+    auth.login(fields.value.email, fields.value.password)
+        .then((response) => {
+            router.push({ name: 'dashboard' });
+        })
+        .catch((error) => {
+            if (error.response?.status === 422 && error.response?.data?.errors) {
+                setErrors(error.response.data);
+            } else {
+                const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
+                setErrors({
+                    errors: {
+                        email: [errorMessage]
+                    }
+                });
+            }
+        })
+        .finally(() => {
+            isSubmitting.value = false;
+        });
+};
+</script>
 <template>
     <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full">
@@ -116,56 +167,4 @@
         </div>
     </div>
 </template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuth } from '@composables/useAuth';
-import { useForms } from '@composables/useForms';
-import FormInput from '@components/forms/FormInput.vue';
-import SubmitSpinner from '@components/SubmitSpinner.vue';
-
-const router = useRouter();
-const auth = useAuth();
-
-const { fields, resetErrors, setErrors, getError } = useForms({
-    email: '',
-    password: '',
-});
-
-const isSubmitting = ref(false);
-
-onMounted(() => {
-    resetErrors();
-});
-
-const handleLogin = async () => {
-    if (isSubmitting.value) {
-        return;
-    }
-    
-    resetErrors();
-    isSubmitting.value = true;
-
-    auth.login(fields.value.email, fields.value.password)
-        .then((response) => {
-            router.push({ name: 'dashboard' });
-        })
-        .catch((error) => {
-            if (error.response?.status === 422 && error.response?.data?.errors) {
-                setErrors(error.response.data);
-            } else {
-                const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
-                setErrors({
-                    errors: {
-                        email: [errorMessage]
-                    }
-                });
-            }
-        })
-        .finally(() => {
-            isSubmitting.value = false;
-        });
-};
-</script>
 

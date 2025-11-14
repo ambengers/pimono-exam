@@ -1,16 +1,18 @@
-import {computed, onBeforeMount} from 'vue';
+import {computed, onMounted} from 'vue';
+import {storeToRefs} from 'pinia';
 import {useAuthStore} from '@stores/auth';
 import axios from 'axios';
+import router from '@/router';
 
 export function useAuth() {
     const authStore = useAuthStore();
 
+    // Use storeToRefs to get reactive references from the store
+    const { user } = storeToRefs(authStore);
     const isLoggedIn = computed(() => authStore.isLoggedIn);
 
-    onBeforeMount (async () => {
-        if (!authStore.user) {
-            await authStore.loadAuth();
-        }
+    onMounted(async () => {
+        await authStore.loadAuth();
     });
 
     async function login(email: string, password: string) {
@@ -31,7 +33,12 @@ export function useAuth() {
 
     async function logout() {
         return axios.post('/logout')
+            .then(() => {
+                authStore.user = null;
+
+                router.push({ name: 'login' }); 
+            });
     }
 
-    return { isLoggedIn, login, register, logout };
+    return { isLoggedIn, user, login, register, logout };
 }

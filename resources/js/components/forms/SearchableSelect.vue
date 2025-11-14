@@ -273,6 +273,7 @@ onUnmounted(() => {
                         <input
                             ref="searchInputRef"
                             v-model="searchQuery"
+                            autofocus
                             type="text"
                             :placeholder="searchPlaceholder"
                             class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"

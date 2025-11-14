@@ -11,7 +11,7 @@ class SenderHasInsufficientFunds extends Exception
         return response()->json([
             'message' => 'Account has insufficient funds to make this transaction.',
             'errors' => [
-                'amount' => 'Account has insufficient funds to make this transaction.',
+                'amount' => ['Account has insufficient funds to make this transaction.'],
             ],
         ], 422);
     }

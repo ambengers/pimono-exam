@@ -22,8 +22,13 @@ class TransactionSeeder extends Seeder
                 'sender_id' => $sender->id,
                 'receiver_id' => $receiver->id,
                 'amount' => $amount = fake()->randomFloat(2, 1, 100),
-                'commission_fee' => $amount * Transaction::COMMISSION_FEE,
-                'total' => $amount + $amount * Transaction::COMMISSION_FEE,
+                'commission_fee' => $commissionFee = $amount * Transaction::COMMISSION_FEE,
+                'commission_fee_percentage' => Transaction::COMMISSION_FEE,
+                'total' => $amount + $commissionFee,
+                'sender_balance_before' => $sender->balance,
+                'sender_balance_after' => $sender->balance - $amount - $amount * Transaction::COMMISSION_FEE,
+                'receiver_balance_before' => $receiver->balance,
+                'receiver_balance_after' => $receiver->balance + $amount,
             ]);
         }
     }

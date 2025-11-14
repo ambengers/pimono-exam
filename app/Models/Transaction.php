@@ -13,13 +13,23 @@ class Transaction extends Model
         'receiver_id',
         'amount',
         'commission_fee',
+        'commission_fee_percentage',
         'total',
+        'sender_balance_before',
+        'sender_balance_after',
+        'receiver_balance_before',
+        'receiver_balance_after',
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
-        'commission_fee' => 'decimal:2',
-        'total' => 'decimal:2',
+        'amount' => 'decimal:4',
+        'commission_fee' => 'decimal:4',
+        'commission_fee_percentage' => 'decimal:4',
+        'total' => 'decimal:4',
+        'sender_balance_before' => 'decimal:4',
+        'sender_balance_after' => 'decimal:4',
+        'receiver_balance_before' => 'decimal:4',
+        'receiver_balance_after' => 'decimal:4',
     ];
 
     public function sender()

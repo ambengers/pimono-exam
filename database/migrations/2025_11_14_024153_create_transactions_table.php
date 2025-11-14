@@ -17,7 +17,12 @@ return new class extends Migration
             $table->foreignId('receiver_id')->constrained('users');
             $table->decimal('amount', 15, 4);
             $table->decimal('commission_fee', 15, 4);
+            $table->decimal('commission_fee_percentage', 5, 4);
             $table->decimal('total', 15, 4);
+            $table->decimal('sender_balance_before', 15, 4);
+            $table->decimal('sender_balance_after', 15, 4);
+            $table->decimal('receiver_balance_before', 15, 4);
+            $table->decimal('receiver_balance_after', 15, 4);
             $table->timestamps();
         });
     }

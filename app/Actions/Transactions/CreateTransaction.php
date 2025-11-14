@@ -30,9 +30,15 @@ class CreateTransaction
             if ($sender->balance < $totalDebit) {
                 throw new SenderHasInsufficientFunds();
             }
+
+            $senderBalanceBefore = $sender->balance;
+            $receiverBalanceBefore = $receiver->balance;
         
             $sender->balance -= $totalDebit;
             $receiver->balance += $amount;
+
+            $senderBalanceAfter = $sender->balance;
+            $receiverBalanceAfter = $receiver->balance;
         
             $sender->save();
             $receiver->save();
@@ -42,7 +48,12 @@ class CreateTransaction
                 'receiver_id' => $receiver->id,
                 'amount' => $amount,
                 'commission_fee' => $commission,
+                'commission_fee_percentage' => Transaction::COMMISSION_FEE,
                 'total' => $totalDebit,
+                'sender_balance_before' => $senderBalanceBefore,
+                'sender_balance_after' => $senderBalanceAfter,
+                'receiver_balance_before' => $receiverBalanceBefore,
+                'receiver_balance_after' => $receiverBalanceAfter,
             ]);
         
         }, 3);

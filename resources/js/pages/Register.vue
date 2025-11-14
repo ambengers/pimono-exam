@@ -18,13 +18,11 @@ const { fields, resetErrors, setErrors, getError } = useForms({
 
 const isSubmitting = ref(false);
 
-// Clear any existing errors when component mounts
 onMounted(() => {
     resetErrors();
 });
 
 const handleRegister = async () => {
-    // Prevent double submission
     if (isSubmitting.value) {
         return;
     }
@@ -42,11 +40,9 @@ const handleRegister = async () => {
         
         router.push('/dashboard');
     } catch (error: any) {
-        // Handle validation errors (422)
         if (error.response?.status === 422 && error.response?.data?.errors) {
             setErrors(error.response.data);
         } else {
-            // Handle other errors
             const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
             setErrors({
                 errors: {

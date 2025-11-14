@@ -20,6 +20,8 @@ class TransactionCreatedEvent
      */
     public function __construct(
         public int $transactionId,
+        public int $senderId,
+        public int $receiverId,
         public ?string $message
     ) {
     }

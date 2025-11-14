@@ -57,7 +57,14 @@ class CreateTransaction
                 'receiver_balance_after' => $receiverBalanceAfter,
             ]);
 
-            event(new TransactionCreatedEvent($transaction->getKey(), 'Transaction created successfully'));
+            event(
+                new TransactionCreatedEvent(
+                    $transaction->getKey(), 
+                    $sender->getKey(),
+                    $receiver->getKey(),
+                    'Transaction created successfully'
+                )
+            );
 
             return $transaction;
         }, 3);

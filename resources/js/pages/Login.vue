@@ -149,25 +149,25 @@ const handleLogin = async () => {
     resetErrors();
     isSubmitting.value = true;
 
-    try {
-        await auth.login(fields.value.email, fields.value.password);
-        router.push((route.query.redirect as string) || '/dashboard');
-    } catch (error: any) {
-        // Handle validation errors (422)
-        if (error.response?.status === 422 && error.response?.data?.errors) {
-            setErrors(error.response.data);
-        } else {
-            // Handle other errors (401, etc.)
-            const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
-            setErrors({
-                errors: {
-                    email: [errorMessage]
-                }
-            });
-        }
-    } finally {
-        isSubmitting.value = false;
-    }
+    auth.login(fields.value.email, fields.value.password)
+        .then((response) => {
+            router.push({ name: 'dashboard' });
+        })
+        .catch((error) => {
+            if (error.response?.status === 422 && error.response?.data?.errors) {
+                setErrors(error.response.data);
+            } else {
+                const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
+                setErrors({
+                    errors: {
+                        email: [errorMessage]
+                    }
+                });
+            }
+        })
+        .finally(() => {
+            isSubmitting.value = false;
+        });
 };
 </script>
 

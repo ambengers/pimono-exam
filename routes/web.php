@@ -17,5 +17,4 @@ Route::middleware(['auth', 'json'])->group(function () {
 
 Route::get('/auth/user', [AuthController::class, 'user']);
 
-// Catch-all route for SPA - must be last
 Route::get('/{any}', SpaController::class)->where('any', '.*');

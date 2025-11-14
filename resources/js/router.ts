@@ -1,5 +1,4 @@
-import routes from './routes.ts'
-// @ts-ignore - nprogress doesn't have types
+import routes from './routes.js'
 import NProgress from 'nprogress'
 import {createRouter, createWebHistory, type NavigationGuardNext, type RouteLocationNormalized} from 'vue-router'
 import {useAuthStore} from "@stores/auth";
@@ -24,37 +23,14 @@ async function beforeEach(to: RouteLocationNormalized, _from: RouteLocationNorma
 
     const auth = useAuthStore()
 
-    // Handle root path redirect
-    if (to.path === '/') {
-        if (auth.isLoggedIn) {
-            next({ name: 'dashboard' })
-        } else {
-            next({ name: 'login' })
-        }
-        return
-    }
-
-    // Check if route requires authentication
-    if (to.meta.requiresAuth === true) {
-        if (!auth.isLoggedIn) {
-            await auth.loadAuth()
-            if (!auth.isLoggedIn) {
-                next({ name: 'login', query: { redirect: to.fullPath } })
-                return
-            }
-        }
-    }
-
-    // Check if route is guest-only (login/register)
-    if (to.meta.guestOnly === true && auth.isLoggedIn) {
-        next({ name: 'dashboard' })
-        return
+    if (!auth.isLoggedIn && to.meta.requiresAuth === true) {
+        await auth.loadAuth()
     }
 
     next()
 }
 
-function afterEach() {
+function afterEach(_to: RouteLocationNormalized, _from: RouteLocationNormalized) {
     NProgress.done()
 }
 

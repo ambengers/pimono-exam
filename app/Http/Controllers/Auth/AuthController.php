@@ -14,7 +14,13 @@ class AuthController extends Controller
 {
     public function user()
     {
-        return UserResource::make(Auth::user());
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+        
+        return UserResource::make($user);
     }
 
     public function login(Request $request)

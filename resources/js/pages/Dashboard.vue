@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router';
 import DefaultButton from '@components/buttons/DefaultButton.vue';
 import Modal from '@components/Modal.vue';
 import SearchableSelect from '@components/forms/SearchableSelect.vue';
+import FormInput from '@components/forms/FormInput.vue';
 import axios from 'axios';
 
 const router = useRouter();
@@ -13,7 +14,6 @@ const auth = useAuth();
 const { user } = auth;
 
 const isTransactionModalOpen = ref(false);
-const accounts = ref<any[]>([]);
 const selectedReceiver = ref<number | null>(null);
 const transactionAmount = ref<string>('');
 
@@ -26,13 +26,15 @@ function formatCurrency(amount: number): string {
     }).format(amount);
 }
 
-async function loadAccounts() {
+async function searchAccounts(query: string): Promise<any[]> {
     try {
-        const { data } = await axios.get('/api/accounts');
-        accounts.value = data.data || data || [];
+        const { data } = await axios.get('/api/accounts', {
+            params: { search: query }
+        });
+        return data.data || data || [];
     } catch (error) {
-        console.error('Failed to load accounts:', error);
-        accounts.value = [];
+        console.error('Failed to search accounts:', error);
+        return [];
     }
 }
 
@@ -44,7 +46,6 @@ function handleLogout() {
 
 function handleMakeTransaction() {
     isTransactionModalOpen.value = true;
-    loadAccounts();
 }
 
 function handleCloseModal() {
@@ -158,13 +159,24 @@ function handleCloseModal() {
             <div class="space-y-4">
                 <SearchableSelect
                     v-model="selectedReceiver"
-                    :options="accounts"
+                    :async-search="searchAccounts"
                     label="Receiver"
                     placeholder="Select a receiver"
-                    search-placeholder="Search by name or email..."
+                    search-placeholder="Search by Account ID, Name or Email..."
                     option-label="name"
                     option-value="id"
                     :required="true"
+                />
+                <FormInput
+                    v-model="transactionAmount"
+                    id="amount"
+                    name="amount"
+                    type="number"
+                    label="Amount"
+                    placeholder="Enter amount"
+                    :required="true"
+                    step="0.01"
+                    min="0.01"
                 />
             </div>
         </Modal>

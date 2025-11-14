@@ -5,12 +5,17 @@ import LogoutIcon from '@components/icons/LogoutIcon.vue';
 import { useRouter } from 'vue-router';
 import DefaultButton from '@components/buttons/DefaultButton.vue';
 import Modal from '@components/Modal.vue';
+import SearchableSelect from '@components/forms/SearchableSelect.vue';
+import axios from 'axios';
 
 const router = useRouter();
 const auth = useAuth();
 const { user } = auth;
 
 const isTransactionModalOpen = ref(false);
+const accounts = ref<any[]>([]);
+const selectedReceiver = ref<number | null>(null);
+const transactionAmount = ref<string>('');
 
 function formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-US', {
@@ -21,6 +26,16 @@ function formatCurrency(amount: number): string {
     }).format(amount);
 }
 
+async function loadAccounts() {
+    try {
+        const { data } = await axios.get('/api/accounts');
+        accounts.value = data.data || data || [];
+    } catch (error) {
+        console.error('Failed to load accounts:', error);
+        accounts.value = [];
+    }
+}
+
 function handleLogout() {
     auth.logout();
 
@@ -29,10 +44,13 @@ function handleLogout() {
 
 function handleMakeTransaction() {
     isTransactionModalOpen.value = true;
+    loadAccounts();
 }
 
 function handleCloseModal() {
     isTransactionModalOpen.value = false;
+    selectedReceiver.value = null;
+    transactionAmount.value = '';
 }
 </script>
 <template>
@@ -137,8 +155,17 @@ function handleCloseModal() {
         <!-- Transaction Modal -->
         <Modal v-model="isTransactionModalOpen" @close="handleCloseModal">
             <template #title>Make a Transaction</template>
-            <div>
-                <p class="text-gray-600">Transaction form will go here.</p>
+            <div class="space-y-4">
+                <SearchableSelect
+                    v-model="selectedReceiver"
+                    :options="accounts"
+                    label="Receiver"
+                    placeholder="Select a receiver"
+                    search-placeholder="Search by name or email..."
+                    option-label="name"
+                    option-value="id"
+                    :required="true"
+                />
             </div>
         </Modal>
     </div>

@@ -10,6 +10,11 @@ use App\Http\Controllers\TransactionsController;
 Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.email');
+
+    
+    Route::get('/reset-password/{token}', [SpaController::class, '__invoke'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
 Route::middleware(['auth', 'json'])->group(function () {

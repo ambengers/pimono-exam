@@ -1,26 +1,26 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuth } from '@composables/useAuth';
 import { useForms } from '@composables/useForms';
 import FormInput from '@components/forms/FormInput.vue';
 import DefaultButton from '@components/buttons/DefaultButton.vue';
+import { useToast } from '@composables/useToast';
+import axios from 'axios';
 
-const router = useRouter();
-const auth = useAuth();
+const toast = useToast();
 
 const { fields, resetErrors, setErrors, getError } = useForms({
     email: '',
-    password: '',
 });
 
 const isSubmitting = ref(false);
+const isSuccess = ref(false);
+const resetLink = ref<string | null>(null);
 
 onMounted(() => {
     resetErrors();
 });
 
-const handleLogin = async () => {
+const handleForgotPassword = async () => {
     if (isSubmitting.value) {
         return;
     }
@@ -28,25 +28,34 @@ const handleLogin = async () => {
     resetErrors();
     isSubmitting.value = true;
 
-    auth.login(fields.value.email, fields.value.password)
-        .then((response) => {
-            router.push({ name: 'dashboard' });
-        })
-        .catch((error) => {
-            if (error.response?.status === 422 && error.response?.data?.errors) {
-                setErrors(error.response.data);
-            } else {
-                const errorMessage = error.response?.data?.message || 'Login failed. Please try again.';
-                setErrors({
-                    errors: {
-                        email: [errorMessage]
-                    }
-                });
-            }
-        })
-        .finally(() => {
-            isSubmitting.value = false;
+    try {
+        const response = await axios.post('/forgot-password', {
+            email: fields.value.email,
         });
+
+        isSuccess.value = true;
+        
+        // If reset link is provided (for development), store it
+        if (response.data.reset_link) {
+            resetLink.value = response.data.reset_link;
+        }
+        
+        toast.success('Password reset link has been sent to your email address.');
+    } catch (error: any) {
+        if (error.response?.status === 422 && error.response?.data?.errors) {
+            setErrors(error.response.data);
+        } else {
+            const errorMessage = error.response?.data?.message || 'Failed to send password reset link. Please try again.';
+            setErrors({
+                errors: {
+                    email: [errorMessage]
+                }
+            });
+            toast.error(errorMessage);
+        }
+    } finally {
+        isSubmitting.value = false;
+    }
 };
 </script>
 <template>
@@ -57,18 +66,35 @@ const handleLogin = async () => {
                 <div class="text-center mb-8">
                     <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 mb-4">
                         <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                         </svg>
                     </div>
                     <h2 class="text-3xl font-bold text-gray-900 mb-2">
-                        Welcome back
+                        Forgot your password?
                     </h2>
                     <p class="text-sm text-gray-600">
-                        Sign in to your account to continue
+                        No worries! Enter your email address and we'll send you a link to reset your password.
                     </p>
                 </div>
 
-                <div v-if="getError('email') || getError('password')" class="rounded-lg bg-red-50 border border-red-200 p-4">
+                <!-- Success Message -->
+                <div v-if="isSuccess" class="rounded-lg bg-green-50 border border-green-200 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3 flex-1">
+                            <p class="text-sm font-medium text-green-800 mb-2">
+                                Password reset link has been sent! Please check your email inbox.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div v-if="!isSuccess && getError('email')" class="rounded-lg bg-red-50 border border-red-200 p-4 mb-6">
                     <div class="flex">
                         <div class="flex-shrink-0">
                             <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -76,14 +102,13 @@ const handleLogin = async () => {
                             </svg>
                         </div>
                         <div class="ml-3">
-                            <p v-if="getError('email')" class="text-sm font-medium text-red-800">{{ getError('email') }}</p>
-                            <p v-else-if="getError('password')" class="text-sm font-medium text-red-800">{{ getError('password') }}</p>
+                            <p class="text-sm font-medium text-red-800">{{ getError('email') }}</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Form -->
-                <form class="mt-6 space-y-6" @submit.prevent="handleLogin">
+                <form v-if="!isSuccess" class="mt-6 space-y-6" @submit.prevent="handleForgotPassword">
                     <div class="space-y-4">
                         <FormInput
                             id="email"
@@ -96,47 +121,14 @@ const handleLogin = async () => {
                             :required="true"
                             :error="getError('email')"
                         />
-                        <FormInput
-                            id="password"
-                            v-model="fields.password"
-                            name="password"
-                            type="password"
-                            label="Password"
-                            placeholder="Enter your password"
-                            autocomplete="current-password"
-                            :required="true"
-                            :error="getError('password')"
-                        />
-                    </div>
-
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
-                            <input
-                                id="remember-me"
-                                name="remember-me"
-                                type="checkbox"
-                                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                            />
-                            <label for="remember-me" class="ml-2 block text-sm text-gray-900">
-                                Remember me
-                            </label>
-                        </div>
-                        <div class="text-sm">
-                            <router-link
-                                :to="{ name: 'forgot-password' }"
-                                class="font-medium text-indigo-600 hover:text-indigo-500"
-                            >
-                                Forgot password?
-                            </router-link>
-                        </div>
                     </div>
 
                     <div>
                         <DefaultButton
                             type="submit"
                             :loading="isSubmitting"
-                            loading-text="Signing in..."
-                            text="Sign in"
+                            loading-text="Sending..."
+                            text="Send reset link"
                             :full-width="true"
                         />
                     </div>
@@ -146,22 +138,35 @@ const handleLogin = async () => {
                             <div class="w-full border-t border-gray-300"></div>
                         </div>
                         <div class="relative flex justify-center text-sm">
-                            <span class="px-2 bg-white text-gray-500">New to our platform?</span>
+                            <span class="px-2 bg-white text-gray-500">Remember your password?</span>
                         </div>
                     </div>
 
                     <div class="text-center">
                         <router-link
-                            :to="{ name: 'register' }"
+                            :to="{ name: 'login' }"
                             class="inline-flex items-center font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
                         >
-                            Create an account
+                            Back to sign in
                             <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                             </svg>
                         </router-link>
                     </div>
                 </form>
+
+                <!-- Success State -->
+                <div v-if="isSuccess" class="mt-6 text-center">
+                    <router-link
+                        :to="{ name: 'login' }"
+                        class="inline-flex items-center font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+                    >
+                        Back to sign in
+                        <svg class="ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </router-link>
+                </div>
             </div>
         </div>
     </div>

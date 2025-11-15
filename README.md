@@ -291,6 +291,20 @@ docker-compose up -d --build
 docker-compose exec app php artisan test
 ```
 
-## License
+## Sample Screenshots
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Login Page**
+
+<img src=./login-page.png />
+
+**Dashboard Page**
+
+<img src=./dashboard-page.png />
+
+**Transaction Modal**
+
+<img src=./transaction-modal.png />
+
+**Successful Transaction**
+
+<img src=./successful-transaction.png />

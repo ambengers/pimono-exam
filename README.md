@@ -87,6 +87,47 @@ This application is containerized with Docker for easy local development. The se
    VITE_PUSHER_APP_CLUSTER=your_pusher_cluster
    ```
    
+   **Pusher Configuration (for Real-time Features):**
+   
+   To enable real-time transaction notifications, set up Pusher:
+   
+   1. **Sign up for Pusher** (free sandbox plan available)
+      - Visit [https://pusher.com](https://pusher.com)
+      - Create a free account or sign in
+   
+   2. **Create a new app**
+      - After logging in, go to **Channels** → **Apps**
+      - Click **Create app** button
+      - Fill in the app details:
+        - **App name:** (e.g., "Pimono Local")
+        - **Cluster:** Select a cluster closest to you (e.g., `us2`, `eu`, `ap1`)
+        - **Front-end tech:** Select "Vanilla JS" or "Vue.js"
+        - **Back-end tech:** Select "Laravel"
+      - Click **Create app**
+   
+   3. **Get your app credentials**
+      - Once the app is created, go to **App Keys** tab
+      - You'll see the following credentials:
+        - **App ID:** (your `PUSHER_APP_ID`)
+        - **Key:** (your `PUSHER_APP_KEY`)
+        - **Secret:** (your `PUSHER_APP_SECRET`)
+        - **Cluster:** (your `PUSHER_APP_CLUSTER` - shown at the top of the page)
+   
+   4. **Update your `.env` file** with Pusher credentials:
+      ```env
+      BROADCAST_DRIVER=pusher
+      
+      PUSHER_APP_ID=your_actual_app_id
+      PUSHER_APP_KEY=your_actual_key
+      PUSHER_APP_SECRET=your_actual_secret
+      PUSHER_APP_CLUSTER=your_cluster
+      
+      VITE_PUSHER_APP_KEY=your_actual_key
+      VITE_PUSHER_APP_CLUSTER=your_cluster
+      ```
+   
+   **Note:** The `VITE_PUSHER_APP_KEY` and `VITE_PUSHER_APP_CLUSTER` are used by the frontend Vue application. Make sure they match the backend `PUSHER_APP_KEY` and `PUSHER_APP_CLUSTER` values.
+   
    **Email Configuration (for Forgot Password functionality):**
    
    To enable email sending for password reset in local development, set up Mailtrap.io:

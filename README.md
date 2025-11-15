@@ -1,58 +1,295 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Pimono - Laravel Application
+### Written By: Marvin Quezon
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A small real-time money transfer app developed using Laravel 12 framework with Vue 3 single-page architecture, TypeScript, TailwindCSS, with real-time features using Pusher.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **User Authentication & Account Management**
+  - User registration and login
+  - Password reset via email (with Mailtrap.io integration for local development)
+  - Secure session management
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Money Transfer System**
+  - Send money to other users with searchable recipient selection
+  - Automatic commission fee calculation
+  - Real-time balance updates after transactions
+  - Designed to handle high concurrency with database row-level locking
+  - Automatic rollback on failed transactions to ensure data integrity
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Transaction History**
+  - View all sent and received transactions
+  - Detailed transaction information including balances before/after
+  - Paginated transaction list with expandable details
+  - Real-time transaction notifications via Pusher
 
-## Learning Laravel
+- **Dashboard**
+  - View account information and current balance
+  - Make new transactions
+  - Browse transaction history with pagination
+  - Real-time updates when receiving new transactions
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## Local Development with Docker
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+This application is containerized with Docker for easy local development. The setup includes:
 
-## Laravel Sponsors
+- **PHP 8.2 FPM** with required extensions
+- **Nginx** web server
+- **MySQL 8.0** database
+- **Redis** for caching and queues
+- **Supervisor** for managing queue workers
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Prerequisites
 
-### Premium Partners
+- Docker and Docker Compose installed
+- `.env` file configured (see `.env.example`)
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Quick Start
 
-## Contributing
+#### Option 1: Automated Deployment (Recommended)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd pimono-exam
+   ```
 
-## Code of Conduct
+2. **Create `.env` file**
+   ```bash
+   cp .env.example .env
+   ```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+3. **Configure environment variables**
+   
+   Edit `.env` and set the following:
+   ```env
+   APP_NAME=Pimono
+   APP_ENV=local
+   APP_DEBUG=true
+   APP_URL=http://localhost:8000
+   
+   DB_CONNECTION=mysql
+   DB_HOST=mysql
+   DB_PORT=3306
+   DB_DATABASE=pimono
+   DB_USERNAME=pimono
+   DB_PASSWORD=password
+   
+   QUEUE_CONNECTION=database
+   BROADCAST_DRIVER=pusher
+   
+   PUSHER_APP_ID=your_pusher_app_id
+   PUSHER_APP_KEY=your_pusher_key
+   PUSHER_APP_SECRET=your_pusher_secret
+   PUSHER_APP_CLUSTER=your_pusher_cluster
+   
+   VITE_PUSHER_APP_KEY=your_pusher_key
+   VITE_PUSHER_APP_CLUSTER=your_pusher_cluster
+   ```
+   
+   **Email Configuration (for Forgot Password functionality):**
+   
+   To enable email sending for password reset in local development, set up Mailtrap.io:
+   
+   1. **Sign up for Mailtrap.io** (free account available)
+      - Visit [https://mailtrap.io](https://mailtrap.io)
+      - Create a free account or sign in
+   
+   2. **Get your SMTP credentials**
+      - After logging in, go to **Email Testing** → **Inboxes**
+      - Select or create an inbox
+      - Click on **SMTP Settings**
+      - Select **Laravel** from the integration dropdown
+      - Copy the following values:
+        - **Host:** `smtp.mailtrap.io`
+        - **Port:** `2525` (or `587` for TLS)
+        - **Username:** (your Mailtrap username)
+        - **Password:** (your Mailtrap password)
+   
+   3. **Update your `.env` file** with Mailtrap credentials:
+      ```env
+      MAIL_MAILER=smtp
+      MAIL_HOST=smtp.mailtrap.io
+      MAIL_PORT=2525
+      MAIL_USERNAME=your_mailtrap_username
+      MAIL_PASSWORD=your_mailtrap_password
+      MAIL_ENCRYPTION=tls
+      MAIL_FROM_ADDRESS=noreply@example.com
+      MAIL_FROM_NAME="${APP_NAME}"
+      ```
+   
+   **Note:** Without Mailtrap configuration, password reset emails will be logged to `storage/logs/laravel.log` instead of being sent. Mailtrap allows you to test emails safely in development without sending real emails.
 
-## Security Vulnerabilities
+4. **Run deployment script**
+   ```bash
+   ./docker/deploy.sh
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+5. **Seed test data (optional)**
+   ```bash
+   docker-compose exec app php artisan db:seed
+   ```
+   
+   This creates 2 default test users:
+   - `sender@example.com` (password: `password`) - Balance: $100,000,000
+   - `receiver@example.com` (password: `password`) - Balance: $1,000,000
+   
+   Plus 100 additional random users and 10,000 sample transactions.
+
+6. **Access the application**
+   
+   Open your browser and navigate to: `http://localhost:8000`
+
+#### Option 2: Manual Deployment
+
+1. **Clone and configure** (same as Option 1, steps 1-3, including email configuration)
+
+2. **Build and start containers**
+   ```bash
+   docker-compose up -d --build
+   ```
+
+3. **Run migrations**
+   ```bash
+   docker-compose exec app php artisan migrate --force
+   ```
+
+4. **Optimize application**
+   ```bash
+   docker-compose exec app php artisan config:cache
+   docker-compose exec app php artisan route:cache
+   docker-compose exec app php artisan view:cache
+   ```
+
+5. **Seed test data (optional)**
+   ```bash
+   docker-compose exec app php artisan db:seed
+   ```
+   
+   This creates 2 default test users:
+   - `sender@example.com` (password: `password`) - Balance: $100,000,000
+   - `receiver@example.com` (password: `password`) - Balance: $1,000,000
+   
+   Plus 100 additional random users and 10,000 sample transactions.
+
+6. **Access the application**
+   
+   Open your browser and navigate to: `http://localhost:8000`
+
+### Docker Commands
+
+**Start containers:**
+```bash
+docker-compose up -d
+```
+
+**Stop containers:**
+```bash
+docker-compose down
+```
+
+**View logs:**
+```bash
+docker-compose logs -f app
+```
+
+**Execute commands in container:**
+```bash
+docker-compose exec app php artisan <command>
+```
+
+**Run migrations:**
+```bash
+docker-compose exec app php artisan migrate
+```
+
+**Seed test data:**
+```bash
+docker-compose exec app php artisan db:seed
+```
+
+This will create:
+- **2 default test users:**
+  - `sender@example.com` (Bruce Wayne) - Balance: $100,000,000
+  - `receiver@example.com` (Clark Kent) - Balance: $1,000,000
+- **100 additional random users** with varying balances
+- **10,000 sample transactions** between the default users
+
+**Note:** The default password for test users is `password` (as defined in the UserFactory).
+
+**Clear cache:**
+```bash
+docker-compose exec app php artisan cache:clear
+docker-compose exec app php artisan config:clear
+docker-compose exec app php artisan route:clear
+docker-compose exec app php artisan view:clear
+```
+
+**Restart queue workers:**
+```bash
+docker-compose restart app
+```
+
+### Connecting to MySQL with External Clients
+
+The MySQL database is accessible from external MySQL clients like Sequel Pro, TablePlus, MySQL Workbench, etc.
+
+**Connection Details:**
+- **Host:** `127.0.0.1` or `localhost`
+- **Port:** `3306`
+- **Database:** `pimono` (or your `DB_DATABASE` value)
+- **Username:** `pimono` (or your `DB_USERNAME` value)
+- **Password:** `password` (or your `DB_PASSWORD` value)
+- **Root Username:** `root`
+- **Root Password:** `rootpassword` (or your `DB_ROOT_PASSWORD` value)
+
+**Note:** Make sure the Docker containers are running before attempting to connect.
+
+### Supervisor Configuration
+
+The application uses Supervisor to manage multiple processes automatically:
+
+- **PHP-FPM** - Handles PHP requests
+- **Nginx** - Web server
+- **2 Laravel Queue Workers** - Process background jobs with automatic restart
+
+Queue workers are configured with:
+- `--sleep=3` - Wait 3 seconds between jobs
+- `--tries=3` - Retry failed jobs up to 3 times
+- `--max-time=3600` - Restart worker after 1 hour
+- Automatic restart on failure
+- Logging to `/var/log/supervisor/laravel-queue.log`
+
+All processes are automatically started when the container starts and will restart if they crash.
+
+### Troubleshooting
+
+**Check queue worker status:**
+```bash
+docker-compose exec app supervisorctl status
+```
+
+**View queue worker logs:**
+```bash
+docker-compose exec app tail -f /var/log/supervisor/laravel-queue.log
+```
+
+**Restart all services:**
+```bash
+docker-compose restart
+```
+
+**Rebuild from scratch:**
+```bash
+docker-compose down -v
+docker-compose up -d --build
+```
+
+## Testing
+
+```bash
+docker-compose exec app php artisan test
+```
 
 ## License
 
